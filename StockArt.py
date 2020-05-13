@@ -63,19 +63,19 @@ def model(s, r, price_target):
 	return se
 
 def trade(se, profit, shares, price_target, writer):
-	#record trades in a csv file
+	#only sell if confident price will fall
 	low  = price_target[1] - (2.807 * se)
-	dif = low - price_target[0]
-	if dif > 0:
+	high = price_target[1] + (2.807 * se)
+	if low > price_target[0]:
 		#buy shares
 		shares += 1
 		profit -= price_target[0]	
-		writer.writerow({'type': 'buy', 'shares': '1', 'price': price_target[0]})	
-	else:
+		writer.writerow({'type': 'buy', 'shares': '1', 'price': price_target[0], 'low prediction': low, 'prediction': price_target[1], 'high prediction': high})	
+	elif high < price_target[0]:
 		if shares != 0:
 			#sell shares
 			profit += price_target[0] * shares
-			writer.writerow({'type': 'sell', 'shares': shares, 'price': price_target[0]})	
+			writer.writerow({'type': 'sell', 'shares': shares, 'price': price_target[0], 'low prediction': low, 'prediction': price_target[1], 'high prediction': high})	
 			shares = 0
 	return profit, shares
 			
@@ -90,7 +90,7 @@ def main():
 	for x in range(delay):
 		price_target.append(0); 
 	with open('trade_data.csv', mode='w') as csv_file:
-		fieldnames = ['type', 'shares', 'price']
+		fieldnames = ['type', 'shares', 'price', 'low prediction', 'prediction', 'high prediction']
 		writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 		writer.writeheader()
 
@@ -111,6 +111,7 @@ def main():
 
 	#sell any remaining shares
 	if shares != 0:
+		print(shares)
 		profit += shares * price_target[0]
 
 	print(profit)
